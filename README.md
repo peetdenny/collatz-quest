@@ -1,6 +1,6 @@
 # Collatz Quest
 
-A playful single-page Collatz sequence practice app for children who like big-number maths. It asks for the next number in the \(3n + 1\) sequence, gives gentle hints, awards stars and badges, grows an odd-number discovery tree, and can optionally sync progress to Firebase.
+A fun single-page Collatz sequence practice app for kids who like big-number maths (principally division and multiplication). It asks for the next number in the \(3n + 1\) sequence, gives gentle hints, awards stars and badges, grows an odd-number discovery tree, and can optionally sync progress to Firebase.
 
 ## Features
 
