@@ -52,33 +52,13 @@ type BadgeItem = {
 };
 
 // ---------- Helpers ----------
-function nextUnfinishedStart(
-  completed: Set<number>,
-  preferred = DEFAULT_START,
-): number {
-  const cleanPreferred = Math.max(1, Math.min(9999, Math.floor(preferred)));
-  if (!completed.has(cleanPreferred)) return cleanPreferred;
-
-  const candidates = [...QUICK_STARTS, ...INTERESTING_STARTS];
-  const next = candidates.find((n) => !completed.has(n));
-  if (next) return next;
-
-  for (let n = QUICK_STARTS.length + 1; n <= 9999; n += 1) {
-    if (!completed.has(n)) return n;
-  }
-
-  return DEFAULT_START;
-}
-
-function randomStart(completed: Set<number>): number {
+function randomStart(): number {
   // Bias toward interesting starts <= 60
   const choices = [
     ...QUICK_STARTS,
     ...QUICK_STARTS,
     ...INTERESTING_STARTS,
-  ].filter((n) => !completed.has(n));
-
-  if (choices.length === 0) return nextUnfinishedStart(completed);
+  ];
 
   return choices[Math.floor(Math.random() * choices.length)];
 }
@@ -271,30 +251,17 @@ export default function Home() {
   }, [start, atOne]);
 
   // ---------- Actions ----------
-  const beginAt = useCallback(
-    (n: number) => {
-      const clean = Math.max(1, Math.min(9999, Math.floor(n)));
-      const chosen = completedStarts.has(clean)
-        ? nextUnfinishedStart(completedStarts, clean + 1)
-        : clean;
+  const beginAt = useCallback((n: number) => {
+    const clean = Math.max(1, Math.min(9999, Math.floor(n)));
 
-      setStart(chosen);
-      setSequence([chosen]);
-      setAnswer("");
-      setAttempts(0);
-      setWrongStreak(0);
-      setRecentOp(null);
-      setFeedback({ kind: "idle" });
-    },
-    [completedStarts],
-  );
-
-  useEffect(() => {
-    if (!cloudHydrated) return;
-    if (sequence.length === 1 && completedStarts.has(start)) {
-      beginAt(start);
-    }
-  }, [beginAt, cloudHydrated, completedStarts, sequence.length, start]);
+    setStart(clean);
+    setSequence([clean]);
+    setAnswer("");
+    setAttempts(0);
+    setWrongStreak(0);
+    setRecentOp(null);
+    setFeedback({ kind: "idle" });
+  }, []);
 
   const submit = useCallback(() => {
     if (atOne) return;
@@ -615,7 +582,7 @@ export default function Home() {
             ) : (
               <VictoryPanel
                 steps={sequence.length - 1}
-                onPlayAgain={() => beginAt(randomStart(completedStarts))}
+                onPlayAgain={() => beginAt(randomStart())}
               />
             )}
           </Card>
@@ -697,7 +664,7 @@ export default function Home() {
               Pick a start
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Finished numbers get a ★ and won’t be asked again.
+              Finished numbers get a ★, but you can still practise them again.
             </p>
             <div
               className="mt-3 grid grid-cols-6 gap-1.5 sm:grid-cols-6"
@@ -711,14 +678,11 @@ export default function Home() {
                   <button
                     key={n}
                     onClick={() => beginAt(n)}
-                    disabled={done}
                     aria-label={`Start at ${n}${done ? " (completed)" : ""}`}
                     data-testid={`button-quickstart-${n}`}
                     className={[
                       "relative rounded-md border px-2 py-1.5 text-sm tabular-nums",
-                      done
-                        ? "cursor-not-allowed opacity-45"
-                        : "hover-elevate active-elevate-2 transition-colors",
+                      "hover-elevate active-elevate-2 transition-colors",
                       active
                         ? "border-primary bg-primary/10 text-primary font-semibold"
                         : "border-border bg-card text-foreground",
@@ -737,7 +701,7 @@ export default function Home() {
             <div className="mt-4 flex gap-2">
               <Input
                 type="number"
-                placeholder="Any unfinished number"
+                placeholder="Any start number"
                 inputMode="numeric"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -750,7 +714,7 @@ export default function Home() {
               />
               <Button
                 variant="outline"
-                onClick={() => beginAt(randomStart(completedStarts))}
+                onClick={() => beginAt(randomStart())}
                 data-testid="button-random"
                 title="Random challenge"
               >
